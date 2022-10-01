@@ -1,0 +1,15 @@
+<?php
+
+use IGK\Helper\ViewHelper; 
+$reg("initDoc", function($doc){
+	igk_ctrl_bind_css_file($this, $doc, false, $this->getPrimaryCssFile());	
+	$ctrl = ViewHelper::CurrentCtrl();	
+	$uri = $ctrl::uri(ViewHelper::GetViewArgs("fname"));	 
+	igk_bge_init($doc, $uri);
+	return $this;
+});
+
+
+$reg("assets", function($name){
+	return $this->getDeclaredDir()."/".$name; 
+});

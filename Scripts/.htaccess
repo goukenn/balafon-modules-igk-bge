@@ -1,0 +1,3 @@
+allow from all
+# enable execution of .pjs file as php
+# AddType application/x-httpd-php .pjs

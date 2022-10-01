@@ -1,0 +1,134 @@
+<?php
+///
+///used to merge script shader in igk.bge.shaders namespace
+///
+$config = array();
+if (!defined('IGK_FRAMEWORK')) {
+	// get framework - package folder 
+	$core = "/Lib/igk/igk_framework.php";
+
+	if (defined("BGE_LOADER_DIR")) {
+		//in cache
+		if (file_exists($d  = BGE_LOADER_DIR . "/.config")) {
+			$configs = json_decode(file_get_contents($d));
+
+			// include_once($d);
+			// echo "info ////// ".$configs->libdir;
+			$core  = $configs->libdir . "/igk_framework.php";
+		}
+	}
+	if (file_exists($core))
+		require_once($core);
+	else {
+		header("Status: 400"); 
+		die("/*[Balafon] Core file not found. {$core}*/", 400);
+	}
+}
+
+if (empty($scheme = igk_server()->REQUEST_SCHEME)) {
+	$scheme = "http";
+	if (igk_server()->HTTPS == "on") {
+		$scheme .= "s";
+	}
+}
+$ref_uri = $scheme . "://" . igk_server()->HTTP_HOST;
+$uri = igk_getr("lib");
+
+if (!$uri || !strstr($uri, $ref_uri)) {
+	igk_set_header(500);
+	igk_exit();
+}
+$path = igk_str_rm_last(igk_uri($_SERVER["DOCUMENT_ROOT"]), "/") . "/" . substr(igk_getr("u"), strlen($ref_uri) + 1);
+
+
+
+
+//load script form name space 
+if (empty($s = (is_dir($path) ? $path : dirname(igk_getr("f"))))) {
+	igk_set_header(500);
+
+	igk_environment()->is("DEV") && igk_text("shader's directory request not found 555: $s vs $path");
+	igk_exit();
+}
+
+
+$ns = igk_getr("ns", "igk.bge.shaders");
+$is_debug = igk_getr("debug", 0);
+
+
+$tv = igk_io_getfiles($s, "/.((v|f)shader)/i"); // from base shader
+
+
+$o = <<<EOF
+(function(){
+var _NS = igk.system.createNS('{$ns}',{});
+EOF;
+
+if ($tv)
+	foreach ($tv as $k => $v) {
+
+		$f = igk_io_read_allfile($v);
+		//remove comment line
+		$h = preg_replace("#//(.)*$#im", "", $f);
+		//$h = preg_replace("/(\n|\r)/", "",  $h);
+		$ho = "";
+		$ms = 0;
+		// filter lines 
+		// preprocessor
+		// igk_wln($h);
+		foreach (explode("\n", $h) as $line) {
+			//preg_replace_callback("/^((.)*)$/im", function($s)use(& $ho, & $ms){
+			$txt = $line; //$s[1];
+			// igk_wl($txt);
+			if (preg_match("/^\s*#(.)*$/mi", $txt)) {
+				$ho .= ($ho == "" ? null : "\n") . rtrim($txt) . "\n";
+				$ms = 1;
+				continue; //return;
+			}
+			$ho .=  preg_replace("/(\n|\r|\t)/im", "",  $txt);
+		}
+
+		if ($ms) {
+			$tt = "[";
+			$ff = 0;
+			foreach (explode("\n", $ho) as $kk => $vv) {
+				if ($ff)
+					$tt .= ",";
+				$tt .= "\"" . $vv . "\"";
+				$ff = 1;
+			}
+			$tt .= "].join(\"\\n\")";
+			$h = $tt;
+		} else {
+			$h = "\"" . $ho . "\"";
+		}
+		// igk_wln($h);
+		switch (strtolower(igk_io_path_ext($v))) {
+
+			case "vshader":
+				$o .= "_NS." . igk_io_basenamewithoutext($v) . "VS =" . $h . ";\n";
+				break;
+			case "fshader":
+				$o .= "_NS." . igk_io_basenamewithoutext($v) . "FS = " . $h . ";\n";
+				break;
+		}
+	}
+$o .= <<<EOF
+})();
+EOF;
+header("Content-Type: text/javascript");
+if (igk_environment()->is("production")) {
+	igk_header_cache_output(3600);
+} else
+	igk_header_no_cache();
+ob_start();
+if (!$is_debug) {
+	igk_zip_output(igk_js_minify($o));
+} else
+	igk_zip_output($o);
+
+$c = ob_get_contents();
+
+ob_clean();
+echo $c;
+igk_exit();
