@@ -265,7 +265,7 @@
 		webgl_surface(options){
 			let gl = options.gl; 		
 			let properties = {
-				backgroundColor: [1,0,1,1],
+				backgroundColor: options.backgroundColor || [0.5,0.5,0.5,1],
 				clearBit: options.clearBit || gl.COLOR_BUFFER_BIT
 			};
 			let update_timeout=0;
