@@ -6,6 +6,7 @@
 //desc : global fonction for bge modules
 //copyright : see balafon copyright
 
+use igk\bge\Components\BgeWebglSurface;
 use IGK\Helper\IO;
 use IGK\System\Html\Dom\HtmlItemBase;
 
@@ -99,7 +100,7 @@ function igk_bge_init($doc, $entryuri){
 function igk_bge_load_shader($doc, $f){
 	$u = dirname(__FILE__)."/Scripts/bge/load_shader.pjs";
 		if ($f!=null)
-			$u .= "?f=".base64_encode(igk_io_getdir($f));	
+			$u .= "?f=".base64_encode(igk_io_dir($f));	
 	$doc->addTempScript($u);
 }
 function igk_bge_get_shaders($folder=null){	
@@ -133,7 +134,12 @@ function igk_html_node_bgeGameSurface($uriBase=''){
 	return $n;
 }
 
-function igk_html_node_webglSurface(){
+/**
+ * init webgl surface
+ * @param mixed $option 
+ * @return BgeWebglSurface 
+ */
+function igk_html_node_webgl_surface($option = null){
 	$n = new igk\bge\Components\BgeWebglSurface();
 	return $n;
 }

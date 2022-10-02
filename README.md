@@ -15,3 +15,4 @@ $t->webgl_surface()
 ```
 
 ## surface options
+```igk-data-options``` attribute is used to pass options to node.

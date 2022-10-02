@@ -262,7 +262,7 @@
 (function(){
 	let surfaces = [];
 	const _NS = igk.system.createNS("igk.bge.webgl", {
-		webGLSurface(options){
+		webgl_surface(options){
 			let gl = options.gl; 		
 			let properties = {
 				backgroundColor: [1,0,1,1],
@@ -273,7 +273,7 @@
 			let is_created = 0;
 			// overridable function
 			let tick = function(){};
-			let render = function(){ console.log('render----');};
+			let render = function(){ };
 			let updateTick = function(){};
 			let created = function(){
 				if (is_created){
@@ -347,18 +347,23 @@
 
 	// init web gl game surface 
 	function _init(){ 
-		const { webGLSurface, createContext } = _NS;
+		const { webgl_surface, createContext } = _NS;
+		let t = JSON.parse(this.getAttribute("igk-data-options"));
 		let p = this.add('canvas');
 		let options = {
 			alpha: true, // important to render overloay image
 			enableDebug:false,
-			antialias:true
+			antialias:true,
+			width : 640,
+			height: 320
 		};
-		p.setAttribute("width", 300);
-		p.setAttribute("height", 300);
-		p.o["style"] = "background-color:red;";
+
+
+		p.setAttribute("width", options.width);
+		p.setAttribute("height", options.height);
+
 		let context = createContext(p.o, options);
-		let _debug = true;
+		let _debug = context.debug;
 		if (!context){
 			this.remove();
 			_debug && console.log("failed to create webgl context");
@@ -366,7 +371,7 @@
 		}
 
 		_debug && console.log("web context created");
-		webGLSurface({
+		webgl_surface({
 			gl:context,
 			target:p.o,
 			options: options
